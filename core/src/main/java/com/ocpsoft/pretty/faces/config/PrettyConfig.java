@@ -19,8 +19,10 @@ package com.ocpsoft.pretty.faces.config;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.ocpsoft.pretty.PrettyContext;
 import com.ocpsoft.pretty.PrettyFilter;
@@ -35,6 +37,7 @@ public class PrettyConfig
    private List<RewriteRule> globalRewriteRules = new ArrayList<RewriteRule>();
    private String dynaviewId = "";
    private Map<String, UrlMapping> cachedMappings = new HashMap<String, UrlMapping>();
+   private Set<String> cachedNonMappedUrls = new HashSet<String>();
 
    /**
     * Set the current DynaView ID. This is used when calculating dynamic viewIds specified in pretty-config.xml (Do not
@@ -76,7 +79,7 @@ public class PrettyConfig
     */
    public List<UrlMapping> getMappings()
    {
-      return Collections.unmodifiableList(mappings);
+      return mappings;
    }
 
    /**
@@ -98,6 +101,10 @@ public class PrettyConfig
       if (cachedMappings.containsKey(mappingKey)) {
           return cachedMappings.get(mappingKey);
       }
+      if(cachedNonMappedUrls.contains(mappingKey)) {
+          // TODO should we make this configurable?
+          return null;
+      }
       for (UrlMapping mapping : getMappings())
       {
          if (mapping.matches(url))
@@ -108,6 +115,7 @@ public class PrettyConfig
             return mapping;
          }
       }
+      cachedNonMappedUrls.add(mappingKey);
       return null;
    }
 
@@ -119,7 +127,7 @@ public class PrettyConfig
    public boolean isMappingId(final String id)
    {
       UrlMapping mapping = getMappingById(id);
-      return mapping instanceof UrlMapping;
+      return mapping != null;
    }
 
    /**

@@ -15,20 +15,27 @@
  */
 package com.ocpsoft.pretty.faces.url;
 
+import com.ocpsoft.pretty.faces.util.StringUtils;
+
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class URL
 {
    private Metadata metadata = new Metadata();
    private String originalURL = "";
    private List<String> segments;
+
+   private static final Pattern SLASH_PATTERN = Pattern.compile("/");
 
    private final Map<String, List<String>> decodedSegments = new HashMap<String, List<String>>();
 
@@ -52,7 +59,7 @@ public class URL
          }
 
          String trimmedUrl = trimSurroundingSlashes(url);
-         String[] segments = trimmedUrl.split("/");
+         String[] segments = SLASH_PATTERN.split(trimmedUrl);
 
          this.segments = Arrays.asList(segments);
       }
@@ -143,12 +150,10 @@ public class URL
    {
       try
       {
-         final URI uri = new URI(("http://localhost/" + segment).replace(" ", "%20").replace("\"", "%22"));
-         return uri.getPath().substring(1);
-      }
-      catch (URISyntaxException e)
-      {
-         throw new IllegalArgumentException(e);
+         return URLDecoder.decode(segment, "UTF-8");
+      } catch (UnsupportedEncodingException e) {
+          // can never happen, because UTF-8 must be supported by all JVMs
+          throw new IllegalStateException(e);
       }
    }
 
@@ -260,19 +265,23 @@ public class URL
     */
    private String trimSurroundingSlashes(final String url)
    {
-      String result = null;
       if (url != null)
       {
-         result = url.trim();
-         if (result.startsWith("/"))
-         {
-            result = result.substring(1);
+         if(StringUtils.isBlank(url)) {
+            return url;
          }
-         if (result.endsWith("/"))
+         StringBuilder result = new StringBuilder(url.trim());
+         if (result.charAt(0) == '/')
          {
-            result = result.substring(0, result.length() - 1);
+            result.deleteCharAt(0);
          }
+         int last = result.length() - 1;
+         if (last != -1 && result.charAt(last) == '/')
+         {
+             result.deleteCharAt(last);
+         }
+         return result.toString();
       }
-      return result;
+      return null;
    }
 }

@@ -77,7 +77,7 @@ public class PrettyContext implements Serializable
 
       contextPath = request.getContextPath();
       String requestUrl = stripContextPath(request.getRequestURI());
-      if (requestUrl.matches(JSESSIONID_REGEX))
+      if (request.isRequestedSessionIdFromURL())
       {
          requestUrl = requestUrl.replaceFirst(JSESSIONID_REGEX, JSESSIONID_REPLACEMENT);
       }
@@ -255,6 +255,11 @@ public class PrettyContext implements Serializable
          currentMapping = config.getMappingForUrl(requestURL);
       }
       return currentMapping;
+   }
+
+   void setCurrentMapping(UrlMapping mapping)
+   {
+      currentMapping = mapping;
    }
 
    /**

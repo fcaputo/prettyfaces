@@ -38,26 +38,29 @@ public class Metadata
 
    public String buildURLFromSegments(final List<String> segments)
    {
+      if(segments.isEmpty())
+      {
+         return "/";
+      }
       StringBuilder result = new StringBuilder();
 
       if (hasLeadingSlash())
       {
-         result.append("/");
+         result.append('/');
       }
 
-      for (Iterator<String> iter = segments.iterator(); iter.hasNext();)
+      for (String segment : segments)
       {
-         String segment = iter.next();
-         result.append(segment);
-         if (iter.hasNext())
-         {
-            result.append("/");
-         }
+         result.append(segment).append('/');
       }
 
-      if (hasTrailingSlash() && !result.toString().endsWith("/"))
+      if (!hasTrailingSlash())
       {
-         result.append("/");
+         result.deleteCharAt(result.length() - 1);
+      }
+      if(result.length() == 2 && result.indexOf("//") > -1)
+      {
+         return "/";
       }
       return result.toString();
    }
